@@ -17,7 +17,9 @@ public class AofWriter {
         this.writerThread = new Thread(() -> {
             try (FileOutputStream fos = new FileOutputStream(filePath, true)) {
                 while (running || !queue.isEmpty()) {
-                    String command = queue.poll(100, java.util.concurrent.TimeUnit.MILLISECONDS);
+                    // take() blocks indefinitely at the OS level until an item is available, 
+                    // consuming 0% CPU while idle.
+                    String command = queue.take(); 
                     if (command != null) {
                         fos.write(command.getBytes(StandardCharsets.UTF_8));
                         fos.flush(); // Flush to OS buffers
@@ -45,6 +47,7 @@ public class AofWriter {
 
     public void stop() {
         this.running = false;
+        this.writerThread.interrupt(); // Wake up if blocked on take()
         try {
             this.writerThread.join();
         } catch (InterruptedException e) {
