@@ -233,8 +233,8 @@ public class StripedKVStore implements KVStore {
                 prev = current;
                 current = current.next;
             }
-            // Key not found or expired, initialize to 1
-            buckets[bucketIdx] = new Node(key, "1", head);
+            // Prepend to the CURRENT state of the bucket, not the stale 'head' variable
+            buckets[bucketIdx] = new Node(key, "1", buckets[bucketIdx]);
             return 1;
         } finally {
             locks[lockIdx].unlock();
