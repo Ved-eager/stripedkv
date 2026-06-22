@@ -1,0 +1,4 @@
+Starting server with STRIPED LOCK
+Starting Crash Recovery from aof.aof...
+Crash Recovery complete.
+Server started on port 6379

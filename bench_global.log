@@ -1,0 +1,10 @@
+Starting Benchmark Client...
+Threads: 50
+Total Operations: 100000
+All threads connected. GO!
+----------------------------------------
+Benchmark Complete!
+Total Time (ms)  : 1085
+Throughput (ops/s) : 92165.90
+Avg Latency (ms)   : 0.3484
+----------------------------------------
