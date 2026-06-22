@@ -8,30 +8,18 @@ The system is designed to prevent thread starvation and race conditions under he
 
 ```mermaid
 graph TD
-    Client1[Client TCP] --> |SET/GET/INCR| NetworkThread(Network Thread Pool)
-    Client2[Client TCP] --> |EXPIRE/DELETE| NetworkThread
-    Client3[Client TCP] --> |...| NetworkThread
-
-    subgraph "The Engine (StripedKVStore)"
-        NetworkThread -->|Hash(key) % 16| LockA[Lock 0]
-        NetworkThread -->|Hash(key) % 16| LockB[Lock 1]
-        NetworkThread -->|Hash(key) % 16| LockC[Lock 15]
-        
-        LockA --> BucketA[Hash Map Bucket]
-        LockB --> BucketB[Hash Map Bucket]
-        LockC --> BucketC[Hash Map Bucket]
+    Client[Client Request] -->|TCP| Server[Network Thread]
+    Server --> Parser[Protocol Parser]
+    Parser --> Hash[Hash Function: key.hashCode]
+    
+    subgraph StripedKV Engine
+        Hash -->|Modulo 16| LockArray[Array of 16 ReentrantLocks]
+        LockArray -->|Acquires Specific Lock| BucketArray[Single Hash Table: Array of N Buckets]
     end
-
-    subgraph "Memory Management"
-        Evictor(Evictor Daemon) -->|Sleeps until next expiry| MinHeap[(TTL Min-Heap)]
-        MinHeap -.->|Triggers Delete| LockB
-    end
-
-    subgraph "Persistence"
-        NetworkThread -->|Raw String| Queue((BlockingQueue))
-        Queue --> AOFThread(AOF Writer Thread)
-        AOFThread -->|Asynchronous Flush| Disk[(aof.aof File)]
-    end
+    
+    BucketArray --> AOFQueue[Blocking Queue]
+    AOFQueue --> AOFWriter[Background AOF Writer Thread]
+    AOFWriter --> Disk[(aof.aof Disk Persistence)]
 ```
 
 ## 🚀 Getting Started
