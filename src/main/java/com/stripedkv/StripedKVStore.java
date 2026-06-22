@@ -86,11 +86,11 @@ public class StripedKVStore implements KVStore {
     }
 
     private int getLockIndex(String key) {
-        return Math.abs(key.hashCode()) % NUM_LOCKS;
+        return (key.hashCode() & 0x7fffffff) % NUM_LOCKS;
     }
 
     private int getBucketIndex(String key) {
-        return Math.abs(key.hashCode()) % NUM_BUCKETS;
+        return (key.hashCode() & 0x7fffffff) % NUM_BUCKETS;
     }
 
     // Helper to wake up the evictor thread if a new earlier expiration is added
